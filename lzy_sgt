@@ -1,0 +1,146 @@
+// Credits to HealthyUG for the inspiration.
+// Lazy Segment Tree with Range Updates and Range Queries
+// Supports multiple Segment Trees with just a change in the Node and Update
+// Very few changes required everytime
+import java.util.*;
+
+class LazySGT<NodeType extends Node, UpdateType extends Update> {
+    NodeType[] tree;
+    boolean[] lazy;
+    UpdateType[] updates;
+    long[] arr; // type may change
+    int n;
+    int s;
+    
+    @SuppressWarnings("unchecked")
+    LazySGT(int a_len, long[] a, Class<NodeType> nodeClass, Class<UpdateType> updateClass) { // change if type updated
+        arr = a.clone();
+        n = a_len;
+        s = 1;
+        while(s < 2 * n){
+            s = s << 1;
+        }
+        tree = (NodeType[]) new Node[s];
+        lazy = new boolean[s];
+        updates = (UpdateType[]) new Update[s];
+        
+        for(int i = 0; i < s; i++) {
+            try {
+                tree[i] = nodeClass.getDeclaredConstructor().newInstance();
+                lazy[i] = false;
+                updates[i] = updateClass.getDeclaredConstructor().newInstance();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+        build(0, n - 1, 1);
+    }
+    
+    void build(int start, int end, int index) { // Never change this
+        if (start == end)   {
+            tree[index] = (NodeType) new Node1(arr[start]);
+            return;
+        }
+        int mid = (start + end) / 2;
+        build(start, mid, 2 * index);
+        build(mid + 1, end, 2 * index + 1);
+        tree[index].merge(tree[2 * index], tree[2 * index + 1]);
+    }
+    
+    void pushdown(int index, int start, int end){
+        if(lazy[index]){
+            int mid = (start + end) / 2;
+            apply(2 * index, start, mid, updates[index]);
+            apply(2 * index + 1, mid + 1, end, updates[index]);
+            updates[index] = (UpdateType) new Update1();
+            lazy[index] = false;
+        }
+    }
+    
+    void apply(int index, int start, int end, UpdateType u){
+        if(start != end){
+            lazy[index] = true;
+            updates[index].combine(u, start, end);
+        }
+        u.apply(tree[index], start, end);
+    }
+    
+    void update(int start, int end, int index, int left, int right, UpdateType u) {  // Never Change this
+        if(start > right || end < left)
+            return;
+        if(start >= left && end <= right){
+            apply(index, start, end, u);
+            return;
+        }
+        pushdown(index, start, end);
+        int mid = (start + end) / 2;
+        update(start, mid, 2 * index, left, right, u);
+        update(mid + 1, end, 2 * index + 1, left, right, u);
+        tree[index].merge(tree[2 * index], tree[2 * index + 1]);
+    }
+    
+    @SuppressWarnings("unchecked")
+    NodeType query(int start, int end, int index, int left, int right) { // Never change this
+        if (start > right || end < left)
+            return (NodeType) new Node1();
+        if (start >= left && end <= right){
+            pushdown(index, start, end);
+            return tree[index];
+        }
+        pushdown(index, start, end);
+        int mid = (start + end) / 2;
+        NodeType l, r, ans;
+        l = query(start, mid, 2 * index, left, right);
+        r = query(mid + 1, end, 2 * index + 1, left, right);
+        ans = (NodeType) new Node1();
+        ans.merge(l, r);
+        return ans;
+    }
+    
+    void make_update(int left, int right, long val) {  // pass in as many parameters as required
+        UpdateType new_update = (UpdateType) new Update1(val); // may change
+        update(0, n - 1, 1, left, right, new_update);
+    }
+    
+    NodeType make_query(int left, int right) {
+        return query(0, n - 1, 1, left, right);
+    }
+}
+
+abstract class Node {
+    abstract void merge(Node l, Node r);
+}
+
+abstract class Update {
+    abstract void apply(Node a, int start, int end);
+    abstract void combine(Update new_update, int start, int end);
+}
+
+class Node1 extends Node {
+    long val; // may change
+    Node1() { // Identity element
+        val = 0;    // may change
+    }
+    Node1(long p1) {  // Actual Node
+        val = p1; // may change
+    }
+    void merge(Node l, Node r) { // Merge two child nodes
+        val = ((Node1)l).val + ((Node1)r).val;  // may change
+    }
+}
+
+class Update1 extends Update {
+    long val; // may change
+    Update1(){ // Identity update
+        val = 0;
+    }
+    Update1(long val1) { // Actual Update
+        val = val1;
+    }
+    void apply(Node a, int start, int end) { // apply update to given node
+        ((Node1)a).val = val * (end - start + 1); // may change
+    }
+    void combine(Update new_update, int start, int end){
+        val = ((Update1)new_update).val;
+    }
+}
