@@ -22,6 +22,8 @@ so its one to many relationship
 here many side is called parent and we should place attribute on many side
 
 
+
+
 threatre--city
 one threatre can belong to 1 city but one city can have many threatre
 so it is many to one relationship
@@ -142,6 +144,9 @@ lombok is used for annotations
 
 @service->used for service class (makes in ioc container)
 @repository -->used in repo class(makes in ioc container)
+
+22) we can also make schema diagram in case time permits
+
 
 
 
