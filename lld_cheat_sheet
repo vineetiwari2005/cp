@@ -1,0 +1,126 @@
+1) the first step is to make the class diagram 
+
+2) class diagram --->> used for mapping relationhip between classed how they are related to each other
+
+3) make use case diagram ---> it should also have roles mentioned like admins customer and inside the use case diagram 
+it should have api. we should focus on includes and extends roles as well
+
+we can also make sequence diagram for an api flow 
+
+4) after all this diagram next step is to mark cardinality between classes
+
+ex ;-
+person ---- aadhar
+1 person should have one adhar card and one adhar card should belong to one person
+so it is one to one mapping
+
+city ----threatre
+1 city can have many threatre but one threatre belong to one city
+1 --m
+1---1
+so its one to many relationship 
+here many side is called parent and we should place attribute on many side
+
+
+threatre--city
+one threatre can belong to 1 city but one city can have many threatre
+so it is many to one relationship
+many side is called parent and we should place attribute on many side
+
+
+student--course
+one student can take many course and one course can be taken by many student 
+so it is many to many 
+here we can place attribute anywhere because all is parent 
+
+
+it is preffered to use many to one in unidirectional relationship because jpa/orm doesnt make extra mapping for many to one wheras in case
+of one to many it makes other table so query will be slower compared to other way
+
+
+5) in case you need to make bidirenctional relationship so if we do it random it will copy the data and make new table so query will be slow
+so we can use mapped by and join coloumn there,
+many side   will have join coloum because it is parent
+and one side will have mapped by 
+
+
+6)in case of has a relationship we have two types 
+composition ;- if one dies then other also dies is called compositon(filled diamond)
+association ;- if one dies other stays is called association (empty diamond)
+
+7)you will be asked a question to design something?
+
+
+8) gather requirements 
+
+9) first focus on current scope and make it implement then if time permits go for future scope of design
+otherwise future scope karne me current scope hi nhi hoga to kuch fayda nhi hai
+
+10)MVC / three layer architecutre
+
+11) controller ;- think of controller as a waiter its work is just to show something 
+controller will not have any business logic . it should be made lean and thin
+controller have two responsibility first is to convert request DTO to actual entity which will be stored in db 
+second is have validation on request body like email should be compulsary and other stufff then it passes the entity to serive layer
+wheras in some cases conversion from request dto to entity is work of service layer because of business logic so we should think on it
+but generally keeping more load on service is also not okay controller can convert things so ideally controller should do it but sometimes it
+does not
+
+12) service ;- think of service layer as a chef it should do all the business logic and if you want something from other service only service 
+layer should call other service layer for not skipping the business logic .it should perform the business logic on the entity and then it should 
+pass the entity to repository
+
+13) repository ;- think of repository as a fridge it will store all the stuff to DB.
+
+
+14) this three layer arcitecutre is imporntant because it brings loose coupling
+ 15) so finally we should make entity as it is and for methods we have two options ;- 
+i) command line , in command line we can skip mvc 
+ii) api stuff , here we cannot skip mvc it is good to have mvc
+
+15) mvc has one disadvantage that it brings class explosion
+
+
+16) how to build an api ??
+api -->used to call method over network
+we have framework for building api most common is REST api
+here resource is called entity so we use path based on entitiy
+http verb / resource / path parameter ya phir query parameter
+
+http verb -
+POST -> create 
+GET--> fetch
+PUT--> update but we have to give full body 
+PATCH -->update but pass only that entity which we want to update
+DELETE--> delete 
+
+path parameter --> passed in url only like {id}
+quey parameter--> also used in url to map filter and etc stuffs
+
+17) how to inject dependency in spring?
+we use dependency injection  
+most good one is ctor injection 
+we have IOC container in which it has all spring beans and it uses topo sort to remove dependency 
+in ctor just pass the dependency and it will inject it automatically
+
+setter injection --> .set() we use that but it has a flaw it makes our entity mutable but we want immutable so it is not good
+autowire injection-->> (field injection ) makes it mutable 
+so in all these ctor injectino is recommended 
+
+18) rest framework is stateless it doesnt save states on client/browser side to make api light 
+
+
+19) ORM 
+we dont need to write query in spring it is done by spring jpa and orm
+it introduces loose coupling 
+good for thik thak scale
+so we just need to create interface and rest work jpa will do for us 
+
+20) Annotations
+
+
+
+
+
+
+
