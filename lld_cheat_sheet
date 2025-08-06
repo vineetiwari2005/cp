@@ -139,6 +139,7 @@ lombok is used for annotations
 @onetoone
 @manytomany
 @enumerated --> used for enums
+@mappedsuperclass --> used for mapping as a parent class of all the class
 
 21) to create repository classname extends jpaReposity<Entity,primary_key_data_type>
 
