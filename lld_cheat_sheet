@@ -117,6 +117,35 @@ good for thik thak scale
 so we just need to create interface and rest work jpa will do for us 
 
 20) Annotations
+lombok is used for annotations
+ @super Builder --> used to pass parent attribute in child classes
+@Builder --> to implement builder design pattern
+@controller --> on controller (it acts as an spring bean)
+@noargsconstrucotr--> no arguement constor auto generation
+@allargsconstrctor--> auto generates all arguement ctor
+@entity --> will be used in ioc container and will repreent a table in db
+@table --> @table(name = " ") it is used to set name of entity in db
+@entityListners --> it runs auto when a entity happens used in auditing of db
+@id --> primary key
+ @Temporal(TemporalType.TIMESTAMP)
+    @CreatedDate --> auto create for date
+
+ @Temporal(TemporalType.TIMESTAMP)
+    @LastModifiedDate --> auto update for date
+@onetomany 
+@manytoone
+@onetoone
+@manytomany
+@enumerated --> used for enums
+
+21) to create repository classname extends jpaReposity<Entity,primary_key_data_type>
+
+@service->used for service class (makes in ioc container)
+@repository -->used in repo class(makes in ioc container)
+
+
+
+
 
 
 
