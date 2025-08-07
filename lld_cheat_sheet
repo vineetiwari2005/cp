@@ -140,6 +140,7 @@ lombok is used for annotations
 @manytomany
 @enumerated --> used for enums
 @mappedsuperclass --> used for mapping as a parent class of all the class
+@data-->gives us getter setter no args all args constructor
 
 21) to create repository classname extends jpaReposity<Entity,primary_key_data_type>
 
