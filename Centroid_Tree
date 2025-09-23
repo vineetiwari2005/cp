@@ -1,0 +1,82 @@
+import java.util.*;
+
+public class CentroidDecomposition {
+    static List<int[]> edgeList = new ArrayList<>();
+    static List<Boolean> deleted = new ArrayList<>();
+    static int[] subtree;
+
+    static int getD(int index, int s) {
+        int[] edge = edgeList.get(index);
+        return edge[0] ^ edge[1] ^ s;
+    }
+
+    static void computeSubtrees(int root, List<Integer>[] edges, int parent) {
+        subtree[root] = 1;
+        for (int i : edges[root]) {
+            int dest = getD(i, root);
+            if (!deleted.get(i) && dest != parent) {
+                computeSubtrees(dest, edges, root);
+                subtree[root] += subtree[dest];
+            }
+        }
+    }
+
+    static int findCentroid(int root, List<Integer>[] edges, int n, int parent) {
+        for (int i : edges[root]) {
+            int dest = getD(i, root);
+            if (!deleted.get(i) && dest != parent && subtree[dest] > n / 2) {
+                return findCentroid(dest, edges, n, root);
+            }
+        }
+        return root;
+    }
+
+    static int decompose(int root, List<Integer>[] edges, List<Integer>[] edgesN, int parent) {
+        computeSubtrees(root, edges, -1);
+        int n = subtree[root];
+        root = findCentroid(root, edges, n, -1);
+
+        if (parent != -1) {
+            edgesN[root].add(parent);
+            edgesN[parent].add(root);
+        }
+
+        for (int i : edges[root]) {
+            int dest = getD(i, root);
+            if (deleted.get(i)) continue;
+            deleted.set(i, true);
+            decompose(dest, edges, edgesN, root);
+        }
+        return root;
+    }
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        int n = sc.nextInt();
+
+        edgeList.clear();
+        deleted.clear();
+        List<Integer>[] edges = new ArrayList[n];
+        for (int i = 0; i < n; i++) edges[i] = new ArrayList<>();
+
+        for (int i = 0; i < n - 1; i++) {
+            int a = sc.nextInt() - 1;
+            int b = sc.nextInt() - 1;
+            edges[a].add(edgeList.size());
+            edges[b].add(edgeList.size());
+            edgeList.add(new int[]{a, b});
+            deleted.add(false);
+        }
+
+        List<Integer>[] edgesN = new ArrayList[n];
+        for (int i = 0; i < n; i++) edgesN[i] = new ArrayList<>();
+
+        subtree = new int[n];
+        Arrays.fill(subtree, 0);
+
+        int root = 0;
+        root = decompose(root, edges, edgesN, -1);
+
+        sc.close();
+    }
+}
