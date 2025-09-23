@@ -1,0 +1,75 @@
+
+public class Main {
+
+    static boolean dfs(int start, List<Integer>[] edges, boolean[] white, boolean[] grey, boolean[] black) {
+        white[start] = false;
+        grey[start] = true;
+        for (int i : edges[start]) {
+            if (grey[i]) return false;
+            if (white[i]) {
+                boolean ans = dfs(i, edges, white, grey, black);
+                if (!ans) return false;
+            }
+        }
+        grey[start] = false;
+        black[start] = true;
+        return true;
+    }
+
+    static boolean checkCycle(int n, List<Integer>[] edges) {
+        boolean[] white = new boolean[n];
+        boolean[] grey = new boolean[n];
+        boolean[] black = new boolean[n];
+        Arrays.fill(white, true);
+        for (int i = 0; i < n; i++) {
+            if (white[i]) {
+                boolean ans = dfs(i, edges, white, grey, black);
+                if (!ans) return true;
+            }
+        }
+        return false;
+    }
+
+    public static void main(String[] args) throws IOException {
+        FastReader sc = new FastReader();
+        int n = sc.nextInt();
+        int m = sc.nextInt();
+        List<Integer>[] edges = new ArrayList[n];
+        for (int i = 0; i < n; i++) edges[i] = new ArrayList<>();
+        for (int i = 0; i < m; i++) {
+            int u = sc.nextInt() - 1;
+            int v = sc.nextInt() - 1;
+            edges[u].add(v);
+        }
+        boolean check = checkCycle(n, edges);
+        if (check) {
+            System.out.println("IMPOSSIBLE");
+        }
+    }
+
+    static class FastReader {
+        BufferedReader br;
+        StringTokenizer st;
+        FastReader() {
+            br = new BufferedReader(new InputStreamReader(System.in));
+        }
+        String next() throws IOException {
+            while (st == null || !st.hasMoreElements()) {
+                st = new StringTokenizer(br.readLine());
+            }
+            return st.nextToken();
+        }
+        int nextInt() throws IOException {
+            return Integer.parseInt(next());
+        }
+        long nextLong() throws IOException {
+            return Long.parseLong(next());
+        }
+        double nextDouble() throws IOException {
+            return Double.parseDouble(next());
+        }
+        String nextLine() throws IOException {
+            return br.readLine();
+        }
+    }
+}
