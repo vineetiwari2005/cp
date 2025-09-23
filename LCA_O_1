@@ -1,0 +1,91 @@
+import java.util.*;
+
+class Node1 {
+    int val;
+    int index;
+    Node1() { val = (int)1e9; index = -1; }
+    Node1(int v, int ind) { val = v; index = ind; }
+    void merge(Node1 l, Node1 r) {
+        if (l.val < r.val) { val = l.val; index = l.index; }
+        else { val = r.val; index = r.index; }
+    }
+}
+
+class SparseTable {
+    Node1[][] table;
+    int[] logValues;
+    int n, maxLog;
+
+    SparseTable(int[] arr) {
+        n = arr.length;
+        logValues = new int[n + 1];
+        logValues[1] = 0;
+        for (int i = 2; i <= n; i++)
+            logValues[i] = logValues[i / 2] + 1;
+
+        maxLog = logValues[n];
+        table = new Node1[n][maxLog + 1];
+        for (int i = 0; i < n; i++) Arrays.fill(table[i], new Node1());
+
+        build(arr);
+    }
+
+    void build(int[] arr) {
+        for (int i = 0; i < n; i++) table[i][0] = new Node1(arr[i], i);
+        for (int j = 1; j <= maxLog; j++) {
+            for (int i = 0; i + (1 << j) <= n; i++) {
+                Node1 left = table[i][j - 1];
+                Node1 right = table[i + (1 << (j - 1))][j - 1];
+                table[i][j] = new Node1();
+                table[i][j].merge(left, right);
+            }
+        }
+    }
+
+    Node1 queryIdempotent(int l, int r) {
+        int j = logValues[r - l + 1];
+        Node1 ans = new Node1();
+        ans.merge(table[l][j], table[r - (1 << j) + 1][j]);
+        return ans;
+    }
+}
+
+class LCA_O_1 {
+    int n;
+    ArrayList<Integer> eulerTour = new ArrayList<>();
+    ArrayList<Integer> node = new ArrayList<>();
+    int[] index;
+    SparseTable sp;
+
+    LCA_O_1(int n1, ArrayList<Integer>[] edges, int root) {
+        n = n1;
+        index = new int[n];
+        dfs(root, edges, -1, 0);
+        int[] tourArr = new int[eulerTour.size()];
+        for (int i = 0; i < tourArr.length; i++) tourArr[i] = eulerTour.get(i);
+        sp = new SparseTable(tourArr);
+    }
+
+    void dfs(int root, ArrayList<Integer>[] edges, int parent, int height) {
+        eulerTour.add(height);
+        node.add(root);
+        index[root] = eulerTour.size() - 1;
+        for (int i : edges[root]) {
+            if (i != parent) {
+                dfs(i, edges, root, height + 1);
+                eulerTour.add(height);
+                node.add(root);
+            }
+        }
+    }
+
+    int query(int a, int b) {
+        int l = Math.min(index[a], index[b]);
+        int r = Math.max(index[a], index[b]);
+        return node.get(sp.queryIdempotent(l, r).index);
+    }
+
+    int getDepth(int a) {
+        return eulerTour.get(index[a]);
+    }
+}
