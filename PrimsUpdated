@@ -1,0 +1,83 @@
+import java.util.*;
+import java.io.*;
+
+public class PrimMSTSet {
+
+    static class Pair {
+        int vertex;
+        long weight;
+        Pair(int vertex, long weight) {
+            this.vertex = vertex;
+            this.weight = weight;
+        }
+    }
+
+    static class PQPair implements Comparable<PQPair> {
+        long weight;
+        int vertex;
+        PQPair(long weight, int vertex) {
+            this.weight = weight;
+            this.vertex = vertex;
+        }
+        @Override
+        public int compareTo(PQPair o) {
+            if (this.weight != o.weight) return Long.compare(this.weight, o.weight);
+            return Integer.compare(this.vertex, o.vertex);
+        }
+    }
+
+    static void solve(Scanner sc) {
+        int n = sc.nextInt();
+        int m = sc.nextInt();
+
+        List<Pair>[] edges = new ArrayList[n];
+        for (int i = 0; i < n; i++) edges[i] = new ArrayList<>();
+
+        for (int i = 0; i < m; i++) {
+            int a = sc.nextInt();
+            int b = sc.nextInt();
+            long w = sc.nextLong();
+            edges[a].add(new Pair(b, w));
+            edges[b].add(new Pair(a, w));
+        }
+
+        long INF = (long)1e18;
+        long[] dist = new long[n];
+        Arrays.fill(dist, INF);
+        dist[0] = 0;
+        boolean[] visited = new boolean[n];
+        int[] parent = new int[n];
+        Arrays.fill(parent, -1);
+
+        TreeSet<PQPair> pq = new TreeSet<>();
+        pq.add(new PQPair(0, 0));
+
+        for (int i = 0; i < n; i++) {
+            PQPair top = pq.pollFirst();
+            int best = top.vertex;
+            visited[best] = true;
+
+            for (Pair neighbor : edges[best]) {
+                if (!visited[neighbor.vertex] && dist[neighbor.vertex] > neighbor.weight) {
+                    pq.remove(new PQPair(dist[neighbor.vertex], neighbor.vertex));
+                    dist[neighbor.vertex] = neighbor.weight;
+                    pq.add(new PQPair(dist[neighbor.vertex], neighbor.vertex));
+                    parent[neighbor.vertex] = best;
+                }
+            }
+        }
+
+        for (int i = 1; i < n; i++) {
+            if (parent[i] < i) {
+                System.out.println(parent[i] + " " + i + " " + dist[i]);
+            } else {
+                System.out.println(i + " " + parent[i] + " " + dist[i]);
+            }
+        }
+    }
+
+    public static void main(String[] args) throws Exception {
+        Scanner sc = new Scanner(System.in);
+        solve(sc);
+    }
+}
