@@ -1,0 +1,88 @@
+import java.util.*;
+
+public class SuffixArray {
+
+    public static void countingSort(int[] p, int[] c, int n) {
+        int[] cnt = new int[n];
+        for (int x : c) cnt[x]++;
+
+        int[] pNew = new int[n];
+        int[] pos = new int[n];
+        pos[0] = 0;
+        for (int i = 1; i < n; i++) pos[i] = pos[i - 1] + cnt[i - 1];
+
+        for (int x : p) {
+            int i = c[x];
+            pNew[pos[i]] = x;
+            pos[i]++;
+        }
+
+        System.arraycopy(pNew, 0, p, 0, n);
+    }
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        String s = sc.nextLine();
+        s += "$";
+        int n = s.length();
+
+        int[] p = new int[n]; // order of suffixes
+        int[] c = new int[n]; // equivalence classes
+
+        // Initial sorting by first character
+        Pair[] a = new Pair[n];
+        for (int i = 0; i < n; i++) a[i] = new Pair(s.charAt(i), i);
+        Arrays.sort(a, Comparator.comparingInt(o -> o.ch));
+
+        for (int i = 0; i < n; i++) p[i] = a[i].index;
+
+        c[p[0]] = 0;
+        for (int i = 1; i < n; i++) {
+            if (a[i].ch == a[i - 1].ch) c[p[i]] = c[p[i - 1]];
+            else c[p[i]] = c[p[i - 1]] + 1;
+        }
+
+        int k = 0;
+        while ((1 << k) < n) {
+            for (int i = 0; i < n; i++)
+                p[i] = (p[i] - (1 << k) + n) % n;
+
+            countingSort(p, c, n);
+
+            int[] cNew = new int[n];
+            cNew[p[0]] = 0;
+            for (int i = 1; i < n; i++) {
+                Pair prev = new Pair(c[p[i - 1]], c[(p[i - 1] + (1 << k)) % n]);
+                Pair now = new Pair(c[p[i]], c[(p[i] + (1 << k)) % n]);
+                if (now.equals(prev)) cNew[p[i]] = cNew[p[i - 1]];
+                else cNew[p[i]] = cNew[p[i - 1]] + 1;
+            }
+            c = cNew;
+            k++;
+        }
+
+        for (int i = 0; i < n; i++) System.out.print(p[i] + " ");
+        System.out.println();
+    }
+
+    static class Pair {
+        int ch, index;
+
+        Pair(int ch, int index) {
+            this.ch = ch;
+            this.index = index;
+        }
+
+        Pair(int a, int b) {
+            this.ch = a;
+            this.index = b;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (!(o instanceof Pair)) return false;
+            Pair other = (Pair) o;
+            return this.ch == other.ch && this.index == other.index;
+        }
+    }
+}
