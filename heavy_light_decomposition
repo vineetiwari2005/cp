@@ -1,0 +1,230 @@
+import java.util.*;
+import static java.lang.Math.*;
+
+class Node1 {
+    long val;
+    Node1() { val = Long.MIN_VALUE; }
+    Node1(long v) { val = v; }
+    void merge(Node1 l, Node1 r) {
+        val = Math.max(l.val, r.val);
+    }
+}
+
+class Update1 {
+    long val;
+    Update1(long v) { val = v; }
+    void apply(Node1 a) { a.val = val; }
+}
+
+class SegTree {
+    Node1[] tree;
+    long[] arr;
+    int n;
+
+    SegTree(long[] values) {
+        n = values.length;
+        arr = values.clone();
+        tree = new Node1[4 * n];
+        for (int i = 0; i < 4 * n; i++) tree[i] = new Node1();
+        build(0, n - 1, 1);
+    }
+
+    void build(int start, int end, int idx) {
+        if (start == end) { tree[idx] = new Node1(arr[start]); return; }
+        int mid = (start + end) / 2;
+        build(start, mid, 2 * idx);
+        build(mid + 1, end, 2 * idx + 1);
+        tree[idx].merge(tree[2 * idx], tree[2 * idx + 1]);
+    }
+
+    void update(int start, int end, int idx, int queryIndex, Update1 u) {
+        if (start == end) { u.apply(tree[idx]); return; }
+        int mid = (start + end) / 2;
+        if (queryIndex <= mid) update(start, mid, 2 * idx, queryIndex, u);
+        else update(mid + 1, end, 2 * idx + 1, queryIndex, u);
+        tree[idx].merge(tree[2 * idx], tree[2 * idx + 1]);
+    }
+
+    Node1 query(int start, int end, int idx, int l, int r) {
+        if (start > r || end < l) return new Node1(Long.MIN_VALUE);
+        if (start >= l && end <= r) return tree[idx];
+        int mid = (start + end) / 2;
+        Node1 left = query(start, mid, 2 * idx, l, r);
+        Node1 right = query(mid + 1, end, 2 * idx + 1, l, r);
+        Node1 ans = new Node1();
+        ans.merge(left, right);
+        return ans;
+    }
+
+    void makeUpdate(int idx, long val) { update(0, n - 1, 1, idx, new Update1(val)); }
+    Node1 makeQuery(int l, int r) { return query(0, n - 1, 1, l, r); }
+}
+
+class BinaryLifting {
+    int n, maxLog;
+    int[][] parent;
+    List<Integer>[] edges;
+
+    BinaryLifting(int n1, List<Integer>[] edges1) {
+        n = n1;
+        edges = edges1;
+        maxLog = (int)(Math.log(n) / Math.log(2)) + 1;
+        parent = new int[n][maxLog + 1];
+        for (int[] row : parent) Arrays.fill(row, -1);
+        fillParentTable(0, -1);
+    }
+
+    void fillParentTable(int node, int par) {
+        parent[node][0] = par;
+        for (int i : edges[node]) if (i != par) fillParentTable(i, node);
+        for (int j = 1; j <= maxLog; j++)
+            for (int i = 0; i < n; i++)
+                if (parent[i][j - 1] != -1)
+                    parent[i][j] = parent[parent[i][j - 1]][j - 1];
+    }
+
+    int kthParent(int node, int k) {
+        for (int i = 0; i <= maxLog; i++)
+            if ((k & (1 << i)) != 0) {
+                node = parent[node][i];
+                if (node == -1) return -1;
+            }
+        return node;
+    }
+}
+
+class LCA {
+    int n;
+    int[] level;
+    List<Integer>[] edges;
+    BinaryLifting bl;
+
+    LCA(int n1, List<Integer>[] edges1, BinaryLifting blObj) {
+        n = n1;
+        edges = edges1;
+        bl = blObj;
+        level = new int[n];
+        dfs(0, -1, 0);
+    }
+
+    void dfs(int node, int par, int lvl) {
+        level[node] = lvl;
+        for (int i : edges[node])
+            if (i != par) dfs(i, node, lvl + 1);
+    }
+
+    int getLCA(int a, int b) {
+        if (level[a] > level[b]) { int tmp = a; a = b; b = tmp; }
+        b = bl.kthParent(b, level[b] - level[a]);
+        if (a == b) return a;
+        for (int i = bl.maxLog; i >= 0; i--) {
+            if (bl.parent[a][i] != bl.parent[b][i]) {
+                a = bl.parent[a][i];
+                b = bl.parent[b][i];
+            }
+        }
+        return bl.parent[a][0];
+    }
+}
+
+class HLD {
+    int n;
+    List<Integer>[] edges;
+    int[] chain, label, subtree, bigChild;
+    long[] values;
+    SegTree seg;
+    LCA lca;
+    BinaryLifting bl;
+
+    HLD(int n1, List<Integer>[] edges1, long[] vals, LCA lcaObj, BinaryLifting blObj) {
+        n = n1; edges = edges1; values = vals; lca = lcaObj; bl = blObj;
+        chain = new int[n]; label = new int[n]; subtree = new int[n]; bigChild = new int[n];
+        Arrays.fill(chain, -1); Arrays.fill(label, -1);
+        dfsPrecompute(0, -1);
+        int time = 0;
+        dfsLabels(0, -1, new int[]{time});
+        dfsChains(0, -1);
+        seg = new SegTree(values);
+        for (int i = 0; i < n; i++) seg.makeUpdate(label[i], values[i]);
+    }
+
+    void dfsPrecompute(int node, int par) {
+        subtree[node] = 1; bigChild[node] = -1; int maxSize = -1;
+        for (int i : edges[node]) {
+            if (i != par) {
+                dfsPrecompute(i, node);
+                subtree[node] += subtree[i];
+                if (subtree[i] > maxSize) { maxSize = subtree[i]; bigChild[node] = i; }
+            }
+        }
+    }
+
+    void dfsLabels(int node, int par, int[] time) {
+        label[node] = time[0]++;
+        if (bigChild[node] != -1) dfsLabels(bigChild[node], node, time);
+        for (int i : edges[node]) if (i != par && i != bigChild[node]) dfsLabels(i, node, time);
+    }
+
+    void dfsChains(int node, int par) {
+        if (bigChild[node] != -1) chain[bigChild[node]] = chain[node];
+        for (int i : edges[node]) if (i != par) dfsChains(i, node);
+    }
+
+    Node1 queryChain(int u, int v) {
+        Node1 res = new Node1(Long.MIN_VALUE);
+        while (lca.level[u] > lca.level[v]) {
+            int top = chain[u];
+            if (lca.level[top] <= lca.level[v])
+                top = bl.kthParent(u, lca.level[u] - lca.level[v] - 1);
+            Node1 segRes = seg.makeQuery(label[top], label[u]);
+            res.merge(res, segRes);
+            u = bl.parent[top][0];
+        }
+        return res;
+    }
+
+    long query(int u, int v) {
+        int anc = lca.getLCA(u, v);
+        Node1 left = queryChain(u, anc);
+        Node1 right = queryChain(v, anc);
+        Node1 merged = new Node1();
+        merged.merge(left, right);
+        Node1 ancVal = seg.makeQuery(label[anc], label[anc]);
+        Node1 ans = new Node1();
+        ans.merge(merged, ancVal);
+        return ans.val;
+    }
+
+    void update(int u, long val) { seg.makeUpdate(label[u], val); }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        int n = sc.nextInt(), q = sc.nextInt();
+        long[] values = new long[n];
+        for (int i = 0; i < n; i++) values[i] = sc.nextLong();
+
+        List<Integer>[] edges = new ArrayList[n];
+        for (int i = 0; i < n; i++) edges[i] = new ArrayList<>();
+        for (int i = 0; i < n - 1; i++) {
+            int a = sc.nextInt() - 1;
+            int b = sc.nextInt() - 1;
+            edges[a].add(b);
+            edges[b].add(a);
+        }
+
+        BinaryLifting bl = new BinaryLifting(n, edges);
+        LCA lca = new LCA(n, edges, bl);
+        HLD hld = new HLD(n, edges, values, lca, bl);
+
+        for (int i = 0; i < q; i++) {
+            int type = sc.nextInt();
+            int u = sc.nextInt() - 1;
+            int v = sc.nextInt();
+            if (type == 1) hld.update(u, v);
+            else System.out.print(hld.query(u, v - 1) + " ");
+        }
+        sc.close();
+    }
+}
