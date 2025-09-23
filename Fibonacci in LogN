@@ -1,0 +1,44 @@
+
+static long MOD=1000000007;
+
+static long[][] identityMatrix={{1,0},{0,1}};
+static long[][] result={{0,0},{0,0}};
+
+static void multiply(long[][] a,long[][] b){
+    for(int i=0;i<2;i++){
+        for(int j=0;j<2;j++){
+            result[i][j]=0;
+        }
+    }
+    for(int i=0;i<2;i++){
+        for(int j=0;j<2;j++){
+            for(int k=0;k<2;k++){
+                result[i][k]=(result[i][k]+a[i][j]*b[j][k])%MOD;
+            }
+        }
+    }
+}
+
+static void matrixExpo(long[][] matrix,long n){
+    if(n==0){
+        for(int i=0;i<2;i++){
+            for(int j=0;j<2;j++){
+                result[i][j]=identityMatrix[i][j];
+            }
+        }
+        return;
+    }
+    matrixExpo(matrix,n/2);
+    multiply(result,result);
+    if((n&1)==1){
+        multiply(result,matrix);
+    }
+}
+
+static long nthFibonacciNumber(long n){
+    if(n<=1) return n;
+    long[][] baseMatrix={{1,1},{1,0}};
+    multiply(baseMatrix,identityMatrix);
+    matrixExpo(baseMatrix,n-1);
+    return result[0][0];
+}
