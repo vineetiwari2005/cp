@@ -1,0 +1,50 @@
+import java.util.*;
+import java.io.*;
+
+public class TopoSortDFS {
+
+    static void dfs(int node, List<Integer>[] edges, boolean[] visited, List<Integer> ans) {
+        visited[node] = true;
+        for (int neighbor : edges[node]) {
+            if (!visited[neighbor]) {
+                dfs(neighbor, edges, visited, ans);
+            }
+        }
+        ans.add(node);
+    }
+
+    static List<Integer> topoSort(int n, List<Integer>[] edges) {
+        List<Integer> ans = new ArrayList<>();
+        boolean[] visited = new boolean[n];
+        for (int i = 0; i < n; i++) {
+            if (!visited[i]) {
+                dfs(i, edges, visited, ans);
+            }
+        }
+        Collections.reverse(ans);
+        return ans;
+    }
+
+    public static void main(String[] args) throws Exception {
+        Scanner sc = new Scanner(System.in);
+
+        int n = sc.nextInt();
+        int m = sc.nextInt();
+
+        List<Integer>[] edges = new ArrayList[n];
+        for (int i = 0; i < n; i++) edges[i] = new ArrayList<>();
+
+        for (int i = 0; i < m; i++) {
+            int u = sc.nextInt() - 1;
+            int v = sc.nextInt() - 1;
+            edges[u].add(v);
+        }
+
+        List<Integer> topoOrder = topoSort(n, edges);
+
+        for (int node : topoOrder) {
+            System.out.print((node + 1) + " ");
+        }
+        System.out.println();
+    }
+}
