@@ -1,0 +1,115 @@
+import java.io.*;
+import java.util.*;
+
+public class MosAlgorithm {
+
+    static class Query {
+        int left, right, index;
+
+        Query(int l, int r, int idx) {
+            left = l;
+            right = r;
+            index = idx;
+        }
+    }
+
+    static int blockSize;
+
+    static boolean compare(Query q1, Query q2) {
+        int b1 = q1.left / blockSize;
+        int b2 = q2.left / blockSize;
+        if (b1 == b2) {
+            if (b1 % 2 == 0)
+                return q1.right < q2.right;
+            else
+                return q1.right > q2.right;
+        }
+        return b1 < b2;
+    }
+
+    public static void main(String[] args) throws IOException {
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        PrintWriter out = new PrintWriter(System.out);
+
+        String[] parts = br.readLine().split(" ");
+        int n = Integer.parseInt(parts[0]);
+        int q = Integer.parseInt(parts[1]);
+
+        int[] arr = new int[n];
+        int[] freq;
+        Map<Integer, Integer> coordComp = new HashMap<>();
+        int number = 1;
+
+        parts = br.readLine().split(" ");
+        for (int i = 0; i < n; i++) {
+            int val = Integer.parseInt(parts[i]);
+            if (!coordComp.containsKey(val)) {
+                coordComp.put(val, number);
+                arr[i] = number;
+                number++;
+            } else {
+                arr[i] = coordComp.get(val);
+            }
+        }
+
+        blockSize = (int) Math.sqrt(n) + 1;
+
+        Query[] queries = new Query[q];
+        for (int i = 0; i < q; i++) {
+            parts = br.readLine().split(" ");
+            int l = Integer.parseInt(parts[0]) - 1;
+            int r = Integer.parseInt(parts[1]) - 1;
+            queries[i] = new Query(l, r, i);
+        }
+
+        Arrays.sort(queries, (a, b) -> {
+            int b1 = a.left / blockSize;
+            int b2 = b.left / blockSize;
+            if (b1 == b2) {
+                return b1 % 2 == 0 ? Integer.compare(a.right, b.right) : Integer.compare(b.right, a.right);
+            }
+            return Integer.compare(b1, b2);
+        });
+
+        freq = new int[number + 1];
+        int[] ans = new int[q];
+        int count = 0;
+        int start = 0, end = -1;
+
+        for (Query qu : queries) {
+            int left = qu.left;
+            int right = qu.right;
+
+            while (start < left) {
+                int x = arr[start];
+                freq[x]--;
+                if (freq[x] == 0) count--;
+                start++;
+            }
+            while (start > left) {
+                start--;
+                int x = arr[start];
+                freq[x]++;
+                if (freq[x] == 1) count++;
+            }
+            while (end < right) {
+                end++;
+                int x = arr[end];
+                freq[x]++;
+                if (freq[x] == 1) count++;
+            }
+            while (end > right) {
+                int x = arr[end];
+                freq[x]--;
+                if (freq[x] == 0) count--;
+                end--;
+            }
+            ans[qu.index] = count;
+        }
+
+        for (int i = 0; i < q; i++)
+            out.println(ans[i]);
+
+        out.flush();
+    }
+}
