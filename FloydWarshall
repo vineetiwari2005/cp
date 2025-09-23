@@ -1,0 +1,31 @@
+import java.util.*;
+
+static final long INF=(long)1e18;
+
+static void FloydWarshall(int n, List<Pair>[] adj, long[][] dist){
+    for(int i=0;i<n;i++){
+        for(int j=0;j<n;j++){
+            dist[i][j]=INF;
+        }
+        dist[i][i]=0;
+    }
+    for(int i=0;i<n;i++){
+        for(Pair j:adj[i]){
+            dist[i][j.first]=Math.min(dist[i][j.first],j.second);
+        }
+    }
+    for(int k=0;k<n;k++){
+        for(int i=0;i<n;i++){
+            for(int j=0;j<n;j++){
+                if(dist[i][k]<INF && dist[k][j]<INF)
+                    dist[i][j]=Math.min(dist[i][j],dist[i][k]+dist[k][j]);
+            }
+        }
+    }
+}
+
+static class Pair{
+    int first;
+    long second;
+    Pair(int f,long s){first=f;second=s;}
+}
