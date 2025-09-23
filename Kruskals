@@ -1,0 +1,69 @@
+import java.util.*;
+import java.io.*;
+
+public class KruskalMST {
+
+    static class Edge implements Comparable<Edge> {
+        int u, v;
+        long w;
+        Edge(int u, int v, long w) {
+            this.u = u;
+            this.v = v;
+            this.w = w;
+        }
+        public int compareTo(Edge e) {
+            return Long.compare(this.w, e.w);
+        }
+    }
+
+    static int get(int a, int[] component) {
+        if (component[a] == a) return a;
+        return component[a] = get(component[a], component);
+    }
+
+    static void merge(int a, int b, int[] rank, int[] component) {
+        a = get(a, component);
+        b = get(b, component);
+        if (a == b) return;
+        if (rank[a] == rank[b]) rank[a]++;
+        if (rank[a] > rank[b]) component[b] = a;
+        else component[a] = b;
+    }
+
+    static void solve(Scanner sc) {
+        int n = sc.nextInt();
+        int m = sc.nextInt();
+
+        int[] component = new int[n];
+        for (int i = 0; i < n; i++) component[i] = i;
+        int[] rank = new int[n];
+
+        List<Edge> edges = new ArrayList<>();
+        for (int i = 0; i < m; i++) {
+            int a = sc.nextInt();
+            int b = sc.nextInt();
+            long c = sc.nextLong();
+            edges.add(new Edge(a, b, c));
+        }
+
+        Collections.sort(edges);
+
+        List<Edge> ans = new ArrayList<>();
+        for (Edge e : edges) {
+            if (ans.size() == n - 1) break;
+            if (get(e.u, component) != get(e.v, component)) {
+                merge(e.u, e.v, rank, component);
+                ans.add(e);
+            }
+        }
+
+        for (Edge e : ans) {
+            System.out.println(e.u + " " + e.v + " " + e.w);
+        }
+    }
+
+    public static void main(String[] args) throws Exception {
+        Scanner sc = new Scanner(System.in);
+        solve(sc);
+    }
+}
