@@ -1,0 +1,94 @@
+import java.util.*;
+
+public class SparseTableJava {
+
+    static class Node1 {
+        long val;
+
+        Node1() { // Identity element
+            val = 0;
+        }
+
+        Node1(long v) { // Actual node
+            val = v;
+        }
+
+        void merge(Node1 l, Node1 r) {
+            val = l.val ^ r.val; // Merge operation (XOR)
+        }
+    }
+
+    static class SparseTable {
+        Node1[][] table;
+        int[] logValues;
+        int n;
+        int maxLog;
+        long[] a;
+
+        SparseTable(long[] arr) {
+            n = arr.length;
+            a = arr;
+            maxLog = (int) (Math.log(n) / Math.log(2));
+            logValues = new int[n + 1];
+            logValues[1] = 0;
+            for (int i = 2; i <= n; i++) {
+                logValues[i] = logValues[i / 2] + 1;
+            }
+
+            table = new Node1[n][maxLog + 1];
+            for (int i = 0; i < n; i++) {
+                for (int j = 0; j <= maxLog; j++) {
+                    table[i][j] = new Node1();
+                }
+            }
+            build();
+        }
+
+        void build() {
+            for (int i = 0; i < n; i++) {
+                table[i][0] = new Node1(a[i]);
+            }
+
+            for (int j = 1; j <= maxLog; j++) {
+                for (int i = 0; i + (1 << j) <= n; i++) {
+                    Node1 left = table[i][j - 1];
+                    Node1 right = table[i + (1 << (j - 1))][j - 1];
+                    table[i][j] = new Node1();
+                    table[i][j].merge(left, right);
+                }
+            }
+        }
+
+        // General query (O(logN))
+        Node1 queryNormal(int left, int right) {
+            Node1 ans = new Node1();
+            for (int j = logValues[right - left + 1]; j >= 0; j--) {
+                if ((1 << j) <= right - left + 1) {
+                    Node1 temp = table[left][j];
+                    ans.merge(ans, temp);
+                    left += (1 << j);
+                }
+            }
+            return ans;
+        }
+
+        // Idempotent query (O(1))
+        Node1 queryIdempotent(int left, int right) {
+            int j = logValues[right - left + 1];
+            Node1 ans = new Node1();
+            ans.merge(table[left][j], table[right - (1 << j) + 1][j]);
+            return ans;
+        }
+    }
+
+    public static void main(String[] args) {
+        long[] arr = {1, 2, 3, 4, 5};
+        SparseTable st = new SparseTable(arr);
+
+        Node1 result1 = st.queryNormal(1, 3); // XOR of arr[1..3]
+        Node1 result2 = st.queryIdempotent(1, 3); // Idempotent XOR query
+
+        System.out.println("Normal Query: " + result1.val);
+        System.out.println("Idempotent Query: " + result2.val);
+    }
+}
