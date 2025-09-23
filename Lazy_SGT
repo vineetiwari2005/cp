@@ -1,0 +1,125 @@
+import java.util.*;
+
+class LazySegmentTree {
+
+    static class Node {
+        long val;
+
+        Node() { // Identity element
+            val = 0;
+        }
+
+        Node(long p) { // Leaf node
+            val = p;
+        }
+
+        void merge(Node left, Node right) {
+            val = left.val + right.val; // Change operation as needed (sum here)
+        }
+    }
+
+    static class Update {
+        long val;
+
+        Update() { // Identity update
+            val = 0;
+        }
+
+        Update(long v) { // Actual update
+            val = v;
+        }
+
+        void apply(Node node, int start, int end) {
+            node.val = val * (end - start + 1); // Range assignment
+        }
+
+        void combine(Update newUpdate, int start, int end) {
+            val = newUpdate.val; // Overwrite for assignment
+        }
+    }
+
+    private Node[] tree;
+    private boolean[] lazy;
+    private Update[] updates;
+    private long[] arr;
+    private int n;
+
+    public LazySegmentTree(long[] array) {
+        this.arr = array;
+        this.n = array.length;
+        int s = 1;
+        while (s < 2 * n) s <<= 1;
+        tree = new Node[s];
+        lazy = new boolean[s];
+        updates = new Update[s];
+        for (int i = 0; i < s; i++) {
+            tree[i] = new Node();
+            updates[i] = new Update();
+        }
+        build(0, n - 1, 1);
+    }
+
+    private void build(int start, int end, int index) {
+        if (start == end) {
+            tree[index] = new Node(arr[start]);
+            return;
+        }
+        int mid = (start + end) / 2;
+        build(start, mid, 2 * index);
+        build(mid + 1, end, 2 * index + 1);
+        tree[index].merge(tree[2 * index], tree[2 * index + 1]);
+    }
+
+    private void pushDown(int index, int start, int end) {
+        if (lazy[index]) {
+            int mid = (start + end) / 2;
+            apply(2 * index, start, mid, updates[index]);
+            apply(2 * index + 1, mid + 1, end, updates[index]);
+            updates[index] = new Update();
+            lazy[index] = false;
+        }
+    }
+
+    private void apply(int index, int start, int end, Update upd) {
+        if (start != end) lazy[index] = true;
+        upd.apply(tree[index], start, end);
+        if (start != end) updates[index].combine(upd, start, end);
+    }
+
+    public void update(int l, int r, long val) {
+        Update upd = new Update(val);
+        update(0, n - 1, 1, l, r, upd);
+    }
+
+    private void update(int start, int end, int index, int l, int r, Update upd) {
+        if (start > r || end < l) return;
+        if (start >= l && end <= r) {
+            apply(index, start, end, upd);
+            return;
+        }
+        pushDown(index, start, end);
+        int mid = (start + end) / 2;
+        update(start, mid, 2 * index, l, r, upd);
+        update(mid + 1, end, 2 * index + 1, l, r, upd);
+        tree[index].merge(tree[2 * index], tree[2 * index + 1]);
+    }
+
+    public Node query(int l, int r) {
+        return query(0, n - 1, 1, l, r);
+    }
+
+    private Node query(int start, int end, int index, int l, int r) {
+        if (start > r || end < l) return new Node();
+        if (start >= l && end <= r) {
+            pushDown(index, start, end);
+            return tree[index];
+        }
+        pushDown(index, start, end);
+        int mid = (start + end) / 2;
+        Node left = query(start, mid, 2 * index, l, r);
+        Node right = query(mid + 1, end, 2 * index + 1, l, r);
+        Node ans = new Node();
+        ans.merge(left, right);
+        return ans;
+    }
+}
