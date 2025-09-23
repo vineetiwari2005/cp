@@ -1,0 +1,116 @@
+import java.util.*;
+import java.io.*;
+
+public class SegmentTreeJava {
+
+    static class Node1 {
+        long val;
+
+        Node1() { // Identity element
+            val = 0;
+        }
+
+        Node1(long v) { // Actual node
+            val = v;
+        }
+
+        void merge(Node1 l, Node1 r) {
+            val = l.val ^ r.val; // Merge operation (XOR)
+        }
+    }
+
+    static class Update1 {
+        long val;
+
+        Update1(long v) { // Actual update
+            val = v;
+        }
+
+        void apply(Node1 node) { // Apply update to node
+            node.val = val;
+        }
+    }
+
+    static class SegTree {
+        Node1[] tree;
+        long[] arr;
+        int n, size;
+
+        SegTree(long[] a) {
+            arr = a;
+            n = a.length;
+            size = 1;
+            while (size < 2 * n) size <<= 1;
+
+            tree = new Node1[size];
+            for (int i = 0; i < size; i++) tree[i] = new Node1();
+
+            build(0, n - 1, 1);
+        }
+
+        void build(int start, int end, int index) {
+            if (start == end) {
+                tree[index] = new Node1(arr[start]);
+                return;
+            }
+            int mid = (start + end) / 2;
+            build(start, mid, 2 * index);
+            build(mid + 1, end, 2 * index + 1);
+            tree[index].merge(tree[2 * index], tree[2 * index + 1]);
+        }
+
+        void update(int start, int end, int index, int queryIndex, Update1 u) {
+            if (start == end) {
+                u.apply(tree[index]);
+                return;
+            }
+            int mid = (start + end) / 2;
+            if (queryIndex <= mid) {
+                update(start, mid, 2 * index, queryIndex, u);
+            } else {
+                update(mid + 1, end, 2 * index + 1, queryIndex, u);
+            }
+            tree[index].merge(tree[2 * index], tree[2 * index + 1]);
+        }
+
+        Node1 query(int start, int end, int index, int left, int right) {
+            if (start > right || end < left) return new Node1();
+            if (start >= left && end <= right) return tree[index];
+
+            int mid = (start + end) / 2;
+            Node1 l = query(start, mid, 2 * index, left, right);
+            Node1 r = query(mid + 1, end, 2 * index + 1, left, right);
+            Node1 ans = new Node1();
+            ans.merge(l, r);
+            return ans;
+        }
+
+        void makeUpdate(int idx, long val) {
+            Update1 u = new Update1(val);
+            update(0, n - 1, 1, idx, u);
+        }
+
+        Node1 makeQuery(int left, int right) {
+            return query(0, n - 1, 1, left, right);
+        }
+    }
+
+    public static void main(String[] args) throws IOException {
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        PrintWriter out = new PrintWriter(System.out);
+
+        int n = Integer.parseInt(br.readLine());
+        long[] arr = new long[n];
+        String[] parts = br.readLine().split(" ");
+        for (int i = 0; i < n; i++) arr[i] = Long.parseLong(parts[i]);
+
+        SegTree st = new SegTree(arr);
+
+        // Example usage:
+        st.makeUpdate(2, 10); // Set index 2 to 10
+        Node1 res = st.makeQuery(0, 3); // Query range [0, 3]
+        out.println(res.val);
+
+        out.flush();
+    }
+}
