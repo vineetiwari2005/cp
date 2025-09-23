@@ -1,0 +1,30 @@
+import java.util.*;
+
+static final long INF=Long.MAX_VALUE;
+
+static void Dijkstra(int s,int n,List<Long> dist,List<Integer> parent,List<List<Pair>> adj){
+    Collections.fill(dist,INF);
+    Collections.fill(parent,-1);
+    dist.set(s,0L);
+    PriorityQueue<Pair> q=new PriorityQueue<>((a,b)->Long.compare(a.first,b.first));
+    q.add(new Pair(0L,s));
+    while(!q.isEmpty()){
+        Pair here=q.poll();
+        int v=here.second;
+        long d_v=here.first;
+        if(d_v!=dist.get(v)) continue;
+        for(Pair edge:adj.get(v)){
+            if(dist.get(v)+edge.second<dist.get(edge.first)){
+                dist.set(edge.first,dist.get(v)+edge.second);
+                parent.set(edge.first,v);
+                q.add(new Pair(dist.get(edge.first),edge.first));
+            }
+        }
+    }
+}
+
+static class Pair{
+    long first;
+    int second;
+    Pair(long f,int s){first=f;second=s;}
+}
