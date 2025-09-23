@@ -1,0 +1,71 @@
+import java.util.*;
+
+public class BinaryLifting {
+    int n;
+    int maxLog;
+    long maxRequirement;
+    int[][] parent;
+
+    public BinaryLifting(int n1, List<Integer>[] edges, long requirement, int root) {
+        n = n1;
+        maxRequirement = requirement;
+        maxLog = (int) (Math.log(requirement + 1) / Math.log(2));
+
+        parent = new int[n][maxLog + 1];
+        for (int i = 0; i < n; i++) {
+            Arrays.fill(parent[i], -1);
+        }
+
+        fillParentTable(root, edges);
+    }
+
+    private void fillParentTable(int root, List<Integer>[] edges) {
+        boolean[] visited = new boolean[n];
+        dfsBinaryLifting(root, edges, visited);
+
+        for (int i = 1; i <= maxLog; i++) {
+            for (int j = 0; j < n; j++) {
+                int intermediate = parent[j][i - 1];
+                if (intermediate != -1) {
+                    parent[j][i] = parent[intermediate][i - 1];
+                }
+            }
+        }
+    }
+
+    private void dfsBinaryLifting(int root, List<Integer>[] edges, boolean[] visited) {
+        visited[root] = true;
+        for (int child : edges[root]) {
+            if (!visited[child]) {
+                parent[child][0] = root;
+                dfsBinaryLifting(child, edges, visited);
+            }
+        }
+    }
+
+    public int kthParent(int x, int k) {
+        for (int i = 0; i <= maxLog; i++) {
+            if (((k >> i) & 1) != 0) {
+                if (x == -1) return -1;
+                x = parent[x][i];
+            }
+        }
+        return x;
+    }
+
+    // Example usage
+    public static void main(String[] args) {
+        int n = 7;
+        List<Integer>[] edges = new ArrayList[n];
+        for (int i = 0; i < n; i++) edges[i] = new ArrayList<>();
+        edges[0].add(1);
+        edges[0].add(2);
+        edges[1].add(3);
+        edges[1].add(4);
+        edges[2].add(5);
+        edges[2].add(6);
+
+        BinaryLifting bl = new BinaryLifting(n, edges, 6, 0);
+        System.out.println(bl.kthParent(4, 2)); // Output: 0
+    }
+}
