@@ -1,0 +1,104 @@
+import java.util.*;
+
+class BinaryLifting {
+    int n;
+    int maxLog;
+    long maxRequirement;
+    int[][] parent;
+    int[] logValues;
+    boolean precomputedLogs = false;
+
+    public BinaryLifting(int n1, ArrayList<Integer>[] edges, long requirement, int root) {
+        n = n1;
+        maxRequirement = requirement;
+        maxLog = (int)(Math.log(requirement + 1) / Math.log(2));
+        parent = new int[n][maxLog + 1];
+        for (int i = 0; i < n; i++) Arrays.fill(parent[i], -1);
+        fillParentTable(root, edges);
+        if (maxRequirement <= 1000000L) precomputeLogs();
+    }
+
+    private void fillParentTable(int root, ArrayList<Integer>[] edges) {
+        boolean[] visited = new boolean[n];
+        dfsBinaryLifting(root, edges, visited);
+        int intermediate;
+        for (int i = 1; i <= maxLog; i++) {
+            for (int j = 0; j < n; j++) {
+                intermediate = parent[j][i - 1];
+                if (intermediate != -1) parent[j][i] = parent[intermediate][i - 1];
+            }
+        }
+    }
+
+    private void dfsBinaryLifting(int root, ArrayList<Integer>[] edges, boolean[] visited) {
+        visited[root] = true;
+        for (int i : edges[root]) {
+            if (!visited[i]) {
+                parent[i][0] = root;
+                dfsBinaryLifting(i, edges, visited);
+            }
+        }
+    }
+
+    private void precomputeLogs() {
+        precomputedLogs = true;
+        logValues = new int[(int)maxRequirement + 1];
+        logValues[1] = 0;
+        for (int i = 2; i <= maxRequirement; i++) {
+            logValues[i] = logValues[i / 2] + 1;
+        }
+    }
+
+    public int kthParent(int start, int k) {
+        int a = start;
+        while (k > 0) {
+            int x = getLog(k);
+            a = parent[a][x];
+            if (a == -1) return a;
+            k -= (1 << x);
+        }
+        return a;
+    }
+
+    private int getLog(long x) {
+        return precomputedLogs ? logValues[(int)x] : (int)(Math.log(x) / Math.log(2));
+    }
+}
+
+class LCA {
+    int n;
+    int[] level;
+
+    public LCA(int n1, ArrayList<Integer>[] edges, int root) {
+        n = n1;
+        level = new int[n];
+        dfsLCA(root, edges, -1);
+    }
+
+    private void dfsLCA(int root, ArrayList<Integer>[] edges, int parent) {
+        for (int i : edges[root]) {
+            if (i != parent) {
+                level[i] = level[root] + 1;
+                dfsLCA(i, edges, root);
+            }
+        }
+    }
+
+    public int getLCA(int a, int b, BinaryLifting bl) {
+        if (level[a] > level[b]) {
+            int temp = a; a = b; b = temp;
+        }
+        b = bl.kthParent(b, level[b] - level[a]);
+        if (a == b) return a;
+
+        for (int i = bl.maxLog; i >= 0; i--) {
+            int parentA = bl.parent[a][i];
+            int parentB = bl.parent[b][i];
+            if (parentA != -1 && parentB != -1 && parentA != parentB) {
+                a = parentA;
+                b = parentB;
+            }
+        }
+        return bl.parent[a][0];
+    }
+}
