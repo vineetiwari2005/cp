@@ -1,0 +1,47 @@
+import java.util.*;
+
+class TrieNode {
+    static final int letters = 26;
+    int[] nextNode;
+    int isLeaf;
+
+    TrieNode() {
+        nextNode = new int[letters];
+        Arrays.fill(nextNode, -1);
+        isLeaf = 0;
+    }
+}
+
+class Trie {
+    ArrayList<TrieNode> trieTree;
+
+    Trie() {
+        trieTree = new ArrayList<>();
+        trieTree.add(new TrieNode()); // root node
+    }
+
+    void addString(String s) {
+        int rootHere = 0;
+        for (char c : s.toCharArray()) {
+            int index = c - 'a';
+            if (trieTree.get(rootHere).nextNode[index] == -1) {
+                trieTree.get(rootHere).nextNode[index] = trieTree.size();
+                trieTree.add(new TrieNode());
+            }
+            rootHere = trieTree.get(rootHere).nextNode[index];
+        }
+        trieTree.get(rootHere).isLeaf++;
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Trie t = new Trie();
+        t.addString("apple");
+        t.addString("app");
+        t.addString("banana");
+
+        // Example: printing leaf counts
+        System.out.println("Leaf at 'apple': " + t.trieTree.get(t.trieTree.get(0).nextNode['a'-'a']).isLeaf);
+    }
+}
