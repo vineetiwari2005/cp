@@ -1,0 +1,110 @@
+import java.util.*;
+
+class Edge{
+    int index;
+    int src, dest;
+    long val;
+    int residualIndex;
+    Edge(int index,int src,int dest,long val,int residualIndex){
+        this.index=index;
+        this.src=src;
+        this.dest=dest;
+        this.val=val;
+        this.residualIndex=residualIndex;
+    }
+}
+
+class Flow{
+    int n;
+    int src, dest;
+    int iteration=0;
+    ArrayList<Edge> edgesT;
+    ArrayList<ArrayList<Integer>> edges;
+    int[] visited;
+    boolean solved;
+    long flow;
+    static final long INF=(long)1e18;
+
+    Flow(List<Pair>[] edges1,int n1,int s,int d){
+        n=n1;
+        src=s;
+        dest=d;
+        solved=false;
+        flow=0;
+        iteration=1;
+        visited=new int[n];
+        edges=new ArrayList<>();
+        for(int i=0;i<n;i++) edges.add(new ArrayList<>());
+        edgesT=new ArrayList<>();
+        for(int i=0;i<n;i++){
+            for(Pair j:edges1[i]){
+                Edge e1=new Edge(edgesT.size(),i,j.first,j.second,edgesT.size()+1);
+                Edge e2=new Edge(edgesT.size()+1,j.first,i,0,edgesT.size());
+                edgesT.add(e1);
+                edgesT.add(e2);
+                edges.get(i).add(e1.index);
+                edges.get(j.first).add(e2.index);
+            }
+        }
+    }
+
+    long bfs(int root){
+        Queue<Integer> qu=new LinkedList<>();
+        qu.add(root);
+        visited[root]=iteration;
+        int[] prev=new int[n];
+        Arrays.fill(prev,-1);
+        while(!qu.isEmpty()){
+            int node=qu.poll();
+            if(node==dest) break;
+            for(int i:edges.get(node)){
+                Edge e1=edgesT.get(i);
+                if(visited[e1.dest]!=iteration && e1.val>0){
+                    visited[e1.dest]=iteration;
+                    prev[e1.dest]=e1.index;
+                    qu.add(e1.dest);
+                }
+            }
+        }
+        int currNode=dest;
+        if(prev[currNode]==-1) return 0;
+        long finalValue=INF;
+        while(prev[currNode]!=-1){
+            Edge e1=edgesT.get(prev[currNode]);
+            finalValue=Math.min(finalValue,e1.val);
+            currNode=e1.src;
+        }
+        currNode=dest;
+        while(prev[currNode]!=-1){
+            Edge e1=edgesT.get(prev[currNode]);
+            e1.val-=finalValue;
+            edgesT.set(e1.index,e1);
+            edgesT.get(e1.residualIndex).val+=finalValue;
+            currNode=e1.src;
+        }
+        return finalValue;
+    }
+
+    void EdmondsKarp(){
+        while(true){
+            long f=bfs(src);
+            if(f==0) return;
+            flow+=f;
+            iteration++;
+        }
+    }
+
+    long maxFlow(){
+        if(!solved){
+            solved=true;
+            EdmondsKarp();
+        }
+        return flow;
+    }
+}
+
+class Pair{
+    int first;
+    long second;
+    Pair(int f,long s){first=f;second=s;}
+}
