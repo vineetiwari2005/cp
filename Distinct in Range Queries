@@ -1,0 +1,56 @@
+
+static void update(int index,int[] bit,int value){
+    for(;index<bit.length;index+=(index&-index)){
+        bit[index]+=value;
+    }
+}
+
+static int query(int index,int[] bit){
+    int sum=0;
+    for(;index>0;index-=(index&-index)){
+        sum+=bit[index];
+    }
+    return sum;
+}
+
+static int[] distinctQueries(int n,int q,int[] arr,int[][] queries){
+    Map<Integer,Integer> compression=new HashMap<>();
+    int prev=0;
+    for(int i=0;i<n;i++){
+        if(!compression.containsKey(arr[i])){
+            compression.put(arr[i],prev++);
+        }
+        arr[i]=compression.get(arr[i]);
+    }
+
+    int[] lastIndex=new int[compression.size()];
+    Arrays.fill(lastIndex,-1);
+
+    int[][] tempQueries=new int[q][3];
+    for(int i=0;i<q;i++){
+        tempQueries[i][0]=queries[i][0]+1;
+        tempQueries[i][1]=queries[i][1]+1;
+        tempQueries[i][2]=i;
+    }
+
+    Arrays.sort(tempQueries,Comparator.comparingInt(a->a[1]));
+
+    int[] ans=new int[q];
+    int[] bit=new int[n+1];
+
+    int num=0;
+    for(int i=0;i<n;i++){
+        if(lastIndex[arr[i]]!=-1){
+            update(lastIndex[arr[i]]+1,bit,-1);
+        }
+        lastIndex[arr[i]]=i;
+        update(i+1,bit,1);
+
+        while(num<q && tempQueries[num][1]==i+1){
+            int idx=tempQueries[num][2];
+            ans[idx]=query(i+1,bit)-query(tempQueries[num][0]-1,bit);
+            num++;
+        }
+    }
+    return ans;
+}
