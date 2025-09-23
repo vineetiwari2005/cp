@@ -1,0 +1,66 @@
+import java.util.*;
+import java.io.*;
+
+public class PrimMST {
+
+    static class Pair {
+        int vertex;
+        long weight;
+        Pair(int vertex, long weight) {
+            this.vertex = vertex;
+            this.weight = weight;
+        }
+    }
+
+    static void prims(List<Pair>[] edges, int n) {
+        boolean[] visited = new boolean[n];
+        int[] parent = new int[n];
+        long[] weight = new long[n];
+        Arrays.fill(weight, Long.MAX_VALUE);
+        parent[0] = -1;
+        weight[0] = 0;
+
+        PriorityQueue<Pair> pq = new PriorityQueue<>(Comparator.comparingLong(p -> p.weight));
+        pq.add(new Pair(0, 0));
+
+        for (int i = 0; i < n - 1; i++) {
+            Pair current = pq.poll();
+            while (visited[current.vertex]) {
+                current = pq.poll();
+            }
+            int minVertex = current.vertex;
+            visited[minVertex] = true;
+
+            for (Pair neighbor : edges[minVertex]) {
+                if (!visited[neighbor.vertex] && weight[neighbor.vertex] > neighbor.weight) {
+                    weight[neighbor.vertex] = neighbor.weight;
+                    parent[neighbor.vertex] = minVertex;
+                    pq.add(new Pair(neighbor.vertex, weight[neighbor.vertex]));
+                }
+            }
+        }
+
+        for (int i = 1; i < n; i++) {
+            System.out.println(i + " " + parent[i] + " " + weight[i]);
+        }
+    }
+
+    public static void main(String[] args) throws Exception {
+        Scanner sc = new Scanner(System.in);
+        int n = sc.nextInt();
+        int e = sc.nextInt();
+
+        List<Pair>[] edges = new ArrayList[n];
+        for (int i = 0; i < n; i++) edges[i] = new ArrayList<>();
+
+        for (int i = 0; i < e; i++) {
+            int a = sc.nextInt();
+            int b = sc.nextInt();
+            long w = sc.nextLong();
+            edges[a].add(new Pair(b, w));
+            edges[b].add(new Pair(a, w));
+        }
+
+        prims(edges, n);
+    }
+}
