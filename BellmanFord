@@ -1,0 +1,40 @@
+
+
+static final long INF=(long)1e18;
+
+static void BellmanFord(int n,int src,List<int[]>[] edges,long[] dist,Set<Integer> negCycle){
+    Arrays.fill(dist,INF);
+    dist[src]=0;
+
+    List<long[]> e=new ArrayList<>();
+    for(int i=0;i<n;i++){
+        for(int[] j:edges[i]){
+            // j[0]=neighbor, j[1]=weight
+            e.add(new long[]{j[1],i,j[0]});
+        }
+    }
+
+    for(int i=0;i<n-1;i++){
+        for(long[] j:e){
+            int u=(int)j[1];
+            int v=(int)j[2];
+            long w=j[0];
+            if(dist[u]!=INF && dist[v]>dist[u]+w){
+                dist[v]=dist[u]+w;
+            }
+        }
+    }
+
+    // checking negative cycle
+    for(int i=0;i<n;i++){
+        for(long[] j:e){
+            int u=(int)j[1];
+            int v=(int)j[2];
+            long w=j[0];
+            if(dist[u]!=INF && dist[v]>dist[u]+w){
+                dist[v]=dist[u]+w;
+                negCycle.add(v);
+            }
+        }
+    }
+}
