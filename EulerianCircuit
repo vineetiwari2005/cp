@@ -1,0 +1,57 @@
+import java.util.*;
+
+class Pair implements Comparable<Pair> {
+    int first;
+    int second;
+    Pair(int f,int s){first=f;second=s;}
+    public int compareTo(Pair o){
+        if(this.first!=o.first) return this.first-o.first;
+        return this.second-o.second;
+    }
+    @Override
+    public boolean equals(Object o){
+        if(this==o) return true;
+        if(o==null || getClass()!=o.getClass()) return false;
+        Pair p=(Pair)o;
+        return first==p.first && second==p.second;
+    }
+    @Override
+    public int hashCode(){
+        return Objects.hash(first,second);
+    }
+}
+
+static void dfs(int root, TreeSet<Pair>[] edges, List<Integer> path){
+    while(!edges[root].isEmpty()){
+        Pair p=edges[root].first();
+        edges[root].remove(p);
+        edges[p.first].remove(new Pair(root,p.second));
+        dfs(p.first,edges,path);
+    }
+    path.add(root);
+}
+
+static List<List<Integer>> EulerCircuits(int n, List<Integer>[] edges){
+    List<List<Integer>> circuits=new ArrayList<>();
+    int counter=0;
+    TreeSet<Pair>[] newEdges=new TreeSet[n];
+    for(int i=0;i<n;i++) newEdges[i]=new TreeSet<>();
+    for(int i=0;i<n;i++){
+        for(int j:edges[i]){
+            newEdges[i].add(new Pair(j,counter));
+            newEdges[j].add(new Pair(i,counter));
+            counter++;
+        }
+    }
+    for(int i=0;i<n;i++){
+        if(newEdges[i].size()%2==1) return circuits;
+    }
+    for(int i=0;i<n;i++){
+        if(!newEdges[i].isEmpty()){
+            List<Integer> path=new ArrayList<>();
+            dfs(i,newEdges,path);
+            circuits.add(path);
+        }
+    }
+    return circuits;
+}
