@@ -1,0 +1,127 @@
+import java.util.*;
+
+class MultiSet {
+    private TreeMap<Integer, Integer> map;
+    private int size; // total elements including duplicates
+
+    public MultiSet() {
+        map = new TreeMap<>();
+        size = 0;
+    }
+
+    /* ---------- INSERT ---------- */
+
+    // insert one occurrence
+    public void add(int x) {
+        map.put(x, map.getOrDefault(x, 0) + 1);
+        size++;
+    }
+
+    // insert k occurrences
+    public void add(int x, int k) {
+        if (k <= 0) return;
+        map.put(x, map.getOrDefault(x, 0) + k);
+        size += k;
+    }
+
+    /* ---------- REMOVE ---------- */
+
+    // remove ONE occurrence
+    public void remove(int x) {
+        if (!map.containsKey(x)) return;
+
+        int freq = map.get(x);
+        if (freq == 1) map.remove(x);
+        else map.put(x, freq - 1);
+
+        size--;
+    }
+
+    // remove ALL occurrences
+    public void removeAll(int x) {
+        Integer freq = map.remove(x);
+        if (freq != null) size -= freq;
+    }
+
+    /* ---------- QUERY ---------- */
+
+    // frequency of x
+    public int count(int x) {
+        return map.getOrDefault(x, 0);
+    }
+
+    // check existence
+    public boolean contains(int x) {
+        return map.containsKey(x);
+    }
+
+    // total elements (with duplicates)
+    public int size() {
+        return size;
+    }
+
+    // unique elements count
+    public int uniqueSize() {
+        return map.size();
+    }
+
+    // empty check
+    public boolean isEmpty() {
+        return size == 0;
+    }
+
+    /* ---------- MIN / MAX ---------- */
+
+    public int min() {
+        return map.firstKey();
+    }
+
+    public int max() {
+        return map.lastKey();
+    }
+
+    public void removeMin() {
+        remove(map.firstKey());
+    }
+
+    public void removeMax() {
+        remove(map.lastKey());
+    }
+
+    /* ---------- NEAREST ELEMENTS ---------- */
+
+    public Integer lower(int x) {
+        return map.lowerKey(x);
+    }
+
+    public Integer higher(int x) {
+        return map.higherKey(x);
+    }
+
+    public Integer floor(int x) {
+        return map.floorKey(x);
+    }
+
+    public Integer ceiling(int x) {
+        return map.ceilingKey(x);
+    }
+
+    /* ---------- CLEAR ---------- */
+
+    public void clear() {
+        map.clear();
+        size = 0;
+    }
+
+    /* ---------- DEBUG / PRINT ---------- */
+
+    public void print() {
+        for (Map.Entry<Integer, Integer> e : map.entrySet()) {
+            int val = e.getKey();
+            int freq = e.getValue();
+            for (int i = 0; i < freq; i++)
+                System.out.print(val + " ");
+        }
+        System.out.println();
+    }
+}
