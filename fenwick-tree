@@ -1,0 +1,57 @@
+// Fenwick Tree / Binary Indexed Tree
+// 1-based indexing use hota hai (0 index use nahi karte)
+
+// Agar array 0-based hai (normal Java array),
+// to build/update karte waqt i+1 pass karna padega
+
+// Example build:
+// for(int i=0;i<n;i++){
+//     update(i+1,arr[i]);   // i+1 because Fenwick is 1-based
+// }
+
+// update(ind,val)
+// iska matlab: arr[ind] += val
+// kisi index ki value increase/decrease karna
+// point update hota hai
+
+// sum(ind)
+// prefix sum return karta hai
+// arr[1] + arr[2] + ... + arr[ind]
+
+// Range sum [l..r]
+// sum(r) - sum(l-1)
+
+// Example:
+// sum(7)-sum(1) -> sum from index 2..7
+
+// Time Complexity:
+// update -> O(log n)
+// sum -> O(log n)
+
+// Common uses in CP:
+// inversion count
+// count pairs a[i] > a[j]
+// frequency counting
+// dynamic prefix sums
+
+static int[] fen;
+static int maxsize;
+
+static void initFen(int n){
+    maxsize=n;
+    fen=new int[n+1];
+}
+
+static void update(int ind,int val){
+    for(int i=ind;i<=maxsize;i+=i&-i){
+        fen[i]+=val;
+    }
+}
+
+static int sum(int ind){
+    int ans=0;
+    for(int i=ind;i>0;i-=i&-i){
+        ans+=fen[i];
+    }
+    return ans;
+}
