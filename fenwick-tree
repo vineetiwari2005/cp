@@ -55,3 +55,19 @@ static int sum(int ind){
     }
     return ans;
 }
+// find k-th smallest element when fenwick stores frequencies
+static int kth(int k){
+    int idx=0;
+    int bit=1;
+
+    while((bit<<1)<=maxsize) bit<<=1;
+
+    for(int step=bit;step>0;step>>=1){
+        int next=idx+step;
+        if(next<=maxsize && fen[next]<k){
+            idx=next;
+            k-=fen[next];
+        }
+    }
+    return idx+1;
+}
