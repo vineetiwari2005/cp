@@ -1,146 +1,286 @@
-// Credits to HealthyUG for the inspiration.
-// Lazy Segment Tree with Range Updates and Range Queries
-// Supports multiple Segment Trees with just a change in the Node and Update
-// Very few changes required everytime
-import java.util.*;
+// T -> node, U->update.
+class Lsegtree {
 
-class LazySGT<NodeType extends Node, UpdateType extends Update> {
-    NodeType[] tree;
-    boolean[] lazy;
-    UpdateType[] updates;
-    long[] arr; // type may change
+    long[] st;
+    long[] lazy;
     int n;
-    int s;
-    
-    @SuppressWarnings("unchecked")
-    LazySGT(int a_len, long[] a, Class<NodeType> nodeClass, Class<UpdateType> updateClass) { // change if type updated
-        arr = a.clone();
-        n = a_len;
-        s = 1;
-        while(s < 2 * n){
-            s = s << 1;
-        }
-        tree = (NodeType[]) new Node[s];
-        lazy = new boolean[s];
-        updates = (UpdateType[]) new Update[s];
-        
-        for(int i = 0; i < s; i++) {
-            try {
-                tree[i] = nodeClass.getDeclaredConstructor().newInstance();
-                lazy[i] = false;
-                updates[i] = updateClass.getDeclaredConstructor().newInstance();
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        }
-        build(0, n - 1, 1);
-    }
-    
-    void build(int start, int end, int index) { // Never change this
-        if (start == end)   {
-            tree[index] = (NodeType) new Node1(arr[start]);
-            return;
-        }
-        int mid = (start + end) / 2;
-        build(start, mid, 2 * index);
-        build(mid + 1, end, 2 * index + 1);
-        tree[index].merge(tree[2 * index], tree[2 * index + 1]);
-    }
-    
-    void pushdown(int index, int start, int end){
-        if(lazy[index]){
-            int mid = (start + end) / 2;
-            apply(2 * index, start, mid, updates[index]);
-            apply(2 * index + 1, mid + 1, end, updates[index]);
-            updates[index] = (UpdateType) new Update1();
-            lazy[index] = false;
+    long identity_element;
+    long identity_update;
+
+    Lsegtree(int n, long identity_element, long identity_update)
+    {
+        this.n = n;
+        this.identity_element = identity_element;
+        this.identity_update = identity_update;
+
+        st = new long[4*n];
+        lazy = new long[4*n];
+
+        for(int i=0;i<4*n;i++){
+            st[i]=identity_element;
+            lazy[i]=identity_update;
         }
     }
-    
-    void apply(int index, int start, int end, UpdateType u){
-        if(start != end){
-            lazy[index] = true;
-            updates[index].combine(u, start, end);
-        }
-        u.apply(tree[index], start, end);
-    }
-    
-    void update(int start, int end, int index, int left, int right, UpdateType u) {  // Never Change this
-        if(start > right || end < left)
-            return;
-        if(start >= left && end <= right){
-            apply(index, start, end, u);
-            return;
-        }
-        pushdown(index, start, end);
-        int mid = (start + end) / 2;
-        update(start, mid, 2 * index, left, right, u);
-        update(mid + 1, end, 2 * index + 1, left, right, u);
-        tree[index].merge(tree[2 * index], tree[2 * index + 1]);
-    }
-    
-    @SuppressWarnings("unchecked")
-    NodeType query(int start, int end, int index, int left, int right) { // Never change this
-        if (start > right || end < left)
-            return (NodeType) new Node1();
-        if (start >= left && end <= right){
-            pushdown(index, start, end);
-            return tree[index];
-        }
-        pushdown(index, start, end);
-        int mid = (start + end) / 2;
-        NodeType l, r, ans;
-        l = query(start, mid, 2 * index, left, right);
-        r = query(mid + 1, end, 2 * index + 1, left, right);
-        ans = (NodeType) new Node1();
-        ans.merge(l, r);
+
+    long combine(long l, long r)
+    {
+        // change this function as required.
+
+        // SUM query
+        // long ans = l + r;
+
+        // XOR query
+        // long ans = l ^ r;
+
+        // MAX query
+        // long ans = Math.max(l,r);
+
+        // MIN query
+        // long ans = Math.min(l,r);
+
+        // GCD query
+        // long ans = gcd(l,r);
+
+        long ans = (l + r); // currently SUM
         return ans;
     }
-    
-    void make_update(int left, int right, long val) {  // pass in as many parameters as required
-        UpdateType new_update = (UpdateType) new Update1(val); // may change
-        update(0, n - 1, 1, left, right, new_update);
+
+    void buildUtil(int v, int tl, int tr, long[] a)
+    {
+        if(tl == tr)
+        {
+            st[v] = a[tl];
+            return;
+        }
+
+        int tm = (tl + tr)>>1;
+
+        buildUtil(2*v + 1, tl, tm,a);
+        buildUtil(2*v + 2,tm+1,tr,a);
+
+        st[v] = combine(st[2*v + 1], st[2*v + 2]);
     }
-    
-    NodeType make_query(int left, int right) {
-        return query(0, n - 1, 1, left, right);
+
+    // change the following 2 functions, and you're more or less done.
+
+    long apply(long curr, long upd, int tl, int tr)
+    {
+        // CURRENT IMPLEMENTATION
+        // Range Assignment Update
+        // set all values in range = upd
+        // sum becomes (length * upd)
+
+        long ans = (tr-tl+1)*upd;
+
+        // OTHER POSSIBILITIES
+
+        // Range ADD update
+        // curr + (tr-tl+1)*upd
+
+        // Range XOR update
+        // depends on length parity
+        // if((tr-tl+1)%2==1) curr ^= upd
+
+        // Range MULTIPLY update
+        // curr * upd
+
+        return ans;
+    }
+
+    long combineUpdate(long old_upd, long new_upd, int tl, int tr)
+    {
+        // CURRENT IMPLEMENTATION
+        // Range Assignment
+        // new update overrides previous update
+
+        long ans = old_upd;
+        ans = new_upd;
+
+        // OTHER POSSIBILITIES
+
+        // Range ADD
+        // ans = old_upd + new_upd;
+
+        // Range XOR
+        // ans = old_upd ^ new_upd;
+
+        // Range MULTIPLY
+        // ans = old_upd * new_upd;
+
+        return ans;
+    }
+
+    void push_down(int v, int tl, int tr)
+    {
+        if(lazy[v] == identity_update)return;
+
+        st[v] = apply(st[v], lazy[v], tl, tr);
+
+        if(2*v + 2 < 4*n)
+        {
+            int tm = (tl + tr)>>1;
+
+            lazy[2*v + 1] = combineUpdate(lazy[2*v+1], lazy[v], tl, tm);
+            lazy[2*v + 2] = combineUpdate(lazy[2*v+2], lazy[v], tm+1,tr);
+        }
+
+        lazy[v] = identity_update;
+    }
+
+    long queryUtil(int v, int tl, int tr, int l, int r)
+    {
+        push_down(v,tl,tr);
+
+        if(l > r)return identity_element;
+
+        if(tr < l || tl > r)
+        {
+            return identity_element;
+        }
+
+        if(l <= tl && r >= tr)
+        {
+            return st[v];
+        }
+
+        int tm = (tl + tr)>>1;
+
+        return combine(
+                queryUtil(2*v+1,tl,tm,l,r),
+                queryUtil(2*v+2,tm+1,tr,l,r)
+        );
+    }
+
+    void updateUtil(int v, int tl, int tr, int l, int r, long upd)
+    {
+        push_down(v,tl,tr);
+
+        if(tr < l || tl > r)return;
+
+        if(tl >=l && tr <=r)
+        {
+            lazy[v] = combineUpdate(lazy[v],upd,tl,tr);
+            push_down(v,tl,tr);
+        }
+        else
+        {
+            int tm = (tl + tr)>>1;
+
+            updateUtil(2*v+1,tl,tm,l,r,upd);
+            updateUtil(2*v+2,tm+1,tr,l,r,upd);
+
+            st[v] = combine(st[2*v + 1], st[2*v+2]);
+        }
+    }
+
+    void build(long[] a)
+    {
+        buildUtil(0,0,n-1,a);
+    }
+
+    long query(int l, int r)
+    {
+        return queryUtil(0,0,n-1,l,r);
+    }
+
+    void update(int l,int r, long upd)
+    {
+        updateUtil(0,0,n-1,l,r,upd);
+    }
+
+    // helper gcd
+    long gcd(long a,long b){
+        if(b==0) return a;
+        return gcd(b,a%b);
     }
 }
 
-abstract class Node {
-    abstract void merge(Node l, Node r);
-}
+public class Main {
 
-abstract class Update {
-    abstract void apply(Node a, int start, int end);
-    abstract void combine(Update new_update, int start, int end);
-}
+    public static void main(String[] args) {
 
-class Node1 extends Node {
-    long val; // may change
-    Node1() { // Identity element
-        val = 0;    // may change
-    }
-    Node1(long p1) {  // Actual Node
-        val = p1; // may change
-    }
-    void merge(Node l, Node r) { // Merge two child nodes
-        val = ((Node1)l).val + ((Node1)r).val;  // may change
-    }
-}
+        /*
+        =============================================
+        IDENTITY ELEMENT AND IDENTITY UPDATE GUIDE
+        =============================================
 
-class Update1 extends Update {
-    long val; // may change
-    Update1(){ // Identity update
-        val = 0;
-    }
-    Update1(long val1) { // Actual Update
-        val = val1;
-    }
-    void apply(Node a, int start, int end) { // apply update to given node
-        ((Node1)a).val = val * (end - start + 1); // may change
-    }
-    void combine(Update new_update, int start, int end){
-        val = ((Update1)new_update).val;
+        identity_element → neutral value for queries
+        identity_update  → value meaning "no pending update"
+
+
+        SUM SEGMENT TREE
+        combine = l + r
+        identity_element = 0
+        identity_update = 0 (for range add)
+
+        Example:
+        sum + 0 = sum
+
+
+        MAX SEGMENT TREE
+        combine = max(l,r)
+        identity_element = -infinity
+        identity_update = 0 (for add updates)
+
+        Example:
+        max(x, -inf) = x
+
+
+        MIN SEGMENT TREE
+        combine = min(l,r)
+        identity_element = +infinity
+        identity_update = 0 (for add updates)
+
+        Example:
+        min(x, +inf) = x
+
+
+        GCD SEGMENT TREE
+        combine = gcd(l,r)
+        identity_element = 0
+        identity_update = special value depending on update
+
+        Example:
+        gcd(x,0) = x
+
+
+        XOR SEGMENT TREE
+        combine = l ^ r
+        identity_element = 0
+        identity_update = 0
+
+        Example:
+        x ^ 0 = x
+
+
+        =============================================
+        CURRENT TEMPLATE CONFIGURATION
+        =============================================
+
+        Query: SUM
+        Update: RANGE ASSIGNMENT
+
+        apply():
+        st[v] = length * upd
+
+        combineUpdate():
+        new update overrides old update
+        */
+
+        int n = 5;
+
+        long[] arr = {1,2,3,4,5};
+
+        Lsegtree seg = new Lsegtree(n,0,-1);
+
+        seg.build(arr);
+
+        // assign 10 to range [1,3]
+        seg.update(1,3,10);
+
+        // query sum from [0,4]
+        long ans = seg.query(0,4);
+
+        System.out.println(ans);
     }
 }
