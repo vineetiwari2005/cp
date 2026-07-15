@@ -86,6 +86,7 @@ class Lsegtree {
 //or if mujhe value add krni hai to curr + (tr-tl+1)*upd
 
 
+
     long apply(long curr, long upd, int tl, int tr)
     {
         // CURRENT IMPLEMENTATION
@@ -106,6 +107,8 @@ class Lsegtree {
 
         // Range MULTIPLY update
         // curr * upd
+ //in case of min and max query it will be upd only
+
 
         return ans;
     }
