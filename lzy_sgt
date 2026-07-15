@@ -1,4 +1,14 @@
 // T -> node, U->update.
+ // T -> node, U->update.
+//think of identity element and identity update as well
+//identity element is combine(x,I)=x 
+// in case of add identity element is 0 in multi it is 1
+//if taking max then identity element becomes -inf
+//now think about identity update 
+//applY(u,IU)=u
+//in assignemnt case we can choose it as -1 always most of time ig
+// in case of update we need to think
+
 class Lsegtree {
 
     long[] st;
@@ -21,6 +31,10 @@ class Lsegtree {
             lazy[i]=identity_update;
         }
     }
+ // we need to change this 
+// the defination of combine is mere pass l and r update hai how to combine those updates
+//l and r me kaise updates combine honge
+
 
     long combine(long l, long r)
     {
@@ -62,6 +76,15 @@ class Lsegtree {
     }
 
     // change the following 2 functions, and you're more or less done.
+// change the following 2 functions, and you're more or less done.
+//we need to change this apply as well
+// think we have curr as current update and we have upd and tl and tr
+//this ans should store the updated value of this node for me
+// if i need to change all value in l to r to a upd
+// and query is sum then it should store the updated sum of me
+// which will be (tr-tl+1)*upd 
+//or if mujhe value add krni hai to curr + (tr-tl+1)*upd
+
 
     long apply(long curr, long upd, int tl, int tr)
     {
@@ -86,6 +109,8 @@ class Lsegtree {
 
         return ans;
     }
+// i need to change this combineupdate as well
+//this combines two update
 
     long combineUpdate(long old_upd, long new_upd, int tl, int tr)
     {
